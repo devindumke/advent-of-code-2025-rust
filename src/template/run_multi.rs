@@ -170,6 +170,7 @@ pub mod child_commands {
 
     fn parse_time(line: &str) -> Option<(&str, f64)> {
         // for possible time formats, see: https://github.com/rust-lang/rust/blob/1.64.0/library/core/src/time.rs#L1176-L1200
+        #[allow(clippy::double_ended_iterator_last)]
         let str_timing = line
             .split(" samples)")
             .next()?
