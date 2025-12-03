@@ -1,114 +1,53 @@
 advent_of_code::solution!(2);
 
-struct Range {
-    start: u64,
-    end: u64,
+fn parse_range(input: &str) -> Option<std::ops::RangeInclusive<u64>> {
+    let (lhs, rhs) = input.split_once('-')?;
+    let lhs = lhs.parse::<u64>().ok()?;
+    let rhs = rhs.parse::<u64>().ok()?;
+    Some(lhs..=rhs)
 }
 
-impl Range {
-    fn from(input: &str) -> Option<Self> {
-        let values: Vec<&str> = input.split('-').collect();
-        if values.len() != 2 {
-            return None;
-        }
-        let start = values[0].parse::<u64>().ok()?;
-        let end = values[1].parse::<u64>().ok()?;
-        Some(Range { start, end })
-    }
-
-    fn iter(&self) -> RangeIter {
-        RangeIter {
-            current: self.start,
-            end: self.end,
-        }
-    }
+fn divisors_excluding_one(n: usize) -> impl Iterator<Item = usize> {
+    (2..=n).filter(move |&i| n.is_multiple_of(i))
 }
 
-struct RangeIter {
-    current: u64,
-    end: u64,
-}
-
-impl Iterator for RangeIter {
-    type Item = u64;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.current > self.end {
-            return None;
-        }
-        let value = self.current;
-        self.current += 1;
-        Some(value)
-    }
-}
-
-struct UniqueFactors {
-    n: usize,
-    current: usize,
-}
-
-impl UniqueFactors {
-    fn new(n: usize) -> Self {
-        UniqueFactors { n, current: 1 }
-    }
-}
-
-impl Iterator for UniqueFactors {
-    type Item = usize;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        loop {
-            if self.current > self.n {
-                return None;
-            }
-            self.current += 1;
-            if self.n.is_multiple_of(self.current) {
-                return Some(self.current);
-            }
-        }
-    }
-}
-
-fn get_invalid_ids<F>(range: &Range, pred: F) -> Vec<u64>
+fn get_invalid_ids<F>(range: &std::ops::RangeInclusive<u64>, pred: F) -> Vec<u64>
 where
     F: Fn(&u64) -> bool,
 {
-    range.iter().filter(pred).collect()
+    range.clone().filter(pred).collect()
 }
 
 fn is_n_repeating_slices(str: &str, slice_count: usize) -> bool {
-    debug_assert_eq!(str.len() % slice_count, 0);
+    debug_assert!(str.len().is_multiple_of(slice_count));
     let slice_len = str.len() / slice_count;
-    let slices: Vec<&str> = (0..slice_count)
-        .map(|i| {
-            let start_idx = i * slice_len;
-            let end_idx = start_idx + slice_len;
-            &str[start_idx..end_idx]
-        })
-        .collect();
-    slices.iter().all(|s| *s == slices[0])
+    let first_slice = &str[..slice_len];
+    (1..slice_count).all(|i| {
+        let start_idx = i * slice_len;
+        let end_idx = start_idx + slice_len;
+        &str[start_idx..end_idx] == first_slice
+    })
 }
 fn is_two_repeating_slices(id: &u64) -> bool {
     let string = id.to_string();
-    string.len() % 2 == 0 && is_n_repeating_slices(&string, 2)
+    string.len().is_multiple_of(2) && is_n_repeating_slices(&string, 2)
 }
 
 fn has_any_repeating_slices(id: &u64) -> bool {
     let string = id.to_string();
-    UniqueFactors::new(string.len()).any(|n| is_n_repeating_slices(&string, n))
+    divisors_excluding_one(string.len()).any(|n| is_n_repeating_slices(&string, n))
 }
 
-fn parse_ranges(input: &str) -> Vec<Range> {
+fn parse_ranges(input: &str) -> Vec<std::ops::RangeInclusive<u64>> {
     input
         .split(',')
         .map(|range| {
-            Range::from(range).expect("can split input by ',' then parse into a valid range")
+            parse_range(range).expect("can split input by ',' then parse into a valid range")
         })
         .collect()
 }
 pub fn part_one(input: &str) -> Option<u64> {
-    let ranges = parse_ranges(input);
-    let invalid_id_sum = ranges
+    let invalid_id_sum = parse_ranges(input)
         .iter()
         .flat_map(|range| get_invalid_ids(range, is_two_repeating_slices))
         .sum();
@@ -116,8 +55,7 @@ pub fn part_one(input: &str) -> Option<u64> {
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
-    let ranges = parse_ranges(input);
-    let invalid_id_sum = ranges
+    let invalid_id_sum = parse_ranges(input)
         .iter()
         .flat_map(|range| get_invalid_ids(range, has_any_repeating_slices))
         .sum();
