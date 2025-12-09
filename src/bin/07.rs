@@ -1,11 +1,10 @@
-use std::cmp::PartialEq;
 use itertools::Itertools;
+use std::cmp::PartialEq;
 
 advent_of_code::solution!(7);
 
 #[derive(Copy, Clone, PartialEq)]
-enum Space
-{
+enum Space {
     Source,
     Empty,
     Splitter,
@@ -59,7 +58,11 @@ fn track_beam_progress(map: &[Vec<Space>]) -> (u64, u64) {
     let mut current_line = vec![0; width];
     let mut next = vec![0; width];
     debug_assert_eq!(map[0].iter().filter(|s| **s == Space::Source).count(), 1);
-    let source_idx = map[0].iter().find_position(|s| **s == Space::Source).unwrap().0;
+    let source_idx = map[0]
+        .iter()
+        .find_position(|s| **s == Space::Source)
+        .unwrap()
+        .0;
     current_line[source_idx] = 1;
     let mut split_beam_count = 0;
     for line in map.iter().skip(1) {
