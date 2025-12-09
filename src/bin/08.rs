@@ -36,7 +36,8 @@ impl Edge {
         let dx = from.x as f64 - to.x as f64;
         let dy = from.y as f64 - to.y as f64;
         let dz = from.z as f64 - to.z as f64;
-        let distance = unsafe { NotNan::new_unchecked((dx.powi(2) + dy.powi(2) + dz.powi(2)).sqrt()) };
+        let distance =
+            unsafe { NotNan::new_unchecked((dx.powi(2) + dy.powi(2) + dz.powi(2)).sqrt()) };
         Self {
             from: *from,
             to: *to,
